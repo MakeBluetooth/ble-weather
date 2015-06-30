@@ -10,7 +10,7 @@
 #define BLE_RST 9
 
 BLEPeripheral blePeripheral = BLEPeripheral(BLE_REQ, BLE_RDY, BLE_RST);
-BLEService thermometerService = BLEService("BBB0");
+BLEService weatherService = BLEService("BBB0");
 // TODO normalize descriptor text Temperature, Humidity, Pressure
 // TODO are there standard Bluetooth descriptors for units?
 BLEFloatCharacteristic temperatureCharacteristic = BLEFloatCharacteristic("BBB1", BLERead | BLENotify);
@@ -38,10 +38,10 @@ void setup()
   // set advertised name and service
   blePeripheral.setLocalName("Weather");
   blePeripheral.setDeviceName("Weather");
-  blePeripheral.setAdvertisedServiceUuid(thermometerService.uuid());
+  blePeripheral.setAdvertisedServiceUuid(weatherService.uuid());
 
   // add service and characteristic
-  blePeripheral.addAttribute(thermometerService);
+  blePeripheral.addAttribute(weatherService);
   blePeripheral.addAttribute(temperatureCharacteristic);
   blePeripheral.addAttribute(temperatureDescriptor);
   blePeripheral.addAttribute(humidityCharacteristic);
