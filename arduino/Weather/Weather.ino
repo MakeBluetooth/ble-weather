@@ -1,9 +1,7 @@
-// Weather is a bad name unless we add Barometric pressure
-
 #include <SPI.h>
 #include <BLEPeripheral.h>
 
-// define pins for Adafruit Bluefruit LE 
+// define pins for Adafruit Bluefruit LE
 // https://github.com/sandeepmistry/arduino-BLEPeripheral#pinouts
 #define BLE_REQ 10
 #define BLE_RDY 2
@@ -14,18 +12,20 @@ BLEService weatherService = BLEService("BBB0");
 // TODO normalize descriptor text Temperature, Humidity, Pressure
 // TODO are there standard Bluetooth descriptors for units?
 BLEFloatCharacteristic temperatureCharacteristic = BLEFloatCharacteristic("BBB1", BLERead | BLENotify);
-BLEDescriptor temperatureDescriptor = BLEDescriptor("2901", "Temperature");
+BLEDescriptor temperatureDescriptor = BLEDescriptor("2901", "Temperature (deg F)");
 BLEFloatCharacteristic humidityCharacteristic = BLEFloatCharacteristic("BBB2", BLERead | BLENotify);
-BLEDescriptor humidityDescriptor = BLEDescriptor("2901", "Humidity");
-BLEFloatCharacteristic pressureCharacteristic = BLEFloatCharacteristic("BBB3", BLERead | BLENotify);
-BLEDescriptor pressureDescriptor = BLEDescriptor("2901", "Pressure");
+BLEDescriptor humidityDescriptor = BLEDescriptor("2901", "Humidity (%)");
+BLEUnsignedLongCharacteristic pressureCharacteristic = BLEUnsignedLongCharacteristic("BBB3", BLERead | BLENotify);
+BLEDescriptor pressureDescriptor = BLEDescriptor("2901", "Pressure (pascal)");
 
 #include "DHT.h"
 #define DHTPIN 7        // what pin we're connected to
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 DHT dht(DHTPIN, DHTTYPE);
 
-// TODO add pressure sensor
+#include <Wire.h>
+#include <Adafruit_BMP085.h>
+Adafruit_BMP085 bmp;
 
 long previousMillis = 0;  // will store last time sensor was read
 long interval = 2000;     // interval at which to read sensor (milliseconds)
@@ -34,7 +34,12 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println(F("Bluetooth Low Energy Weather Station"));
-  
+
+  if (!bmp.begin()) {
+    Serial.println(F("Could not find a valid BPM180 sensor, check wiring!"));
+    while (1) {}
+  }
+
   // set advertised name and service
   blePeripheral.setLocalName("Weather");
   blePeripheral.setDeviceName("Weather");
@@ -48,7 +53,7 @@ void setup()
   blePeripheral.addAttribute(humidityDescriptor);
   blePeripheral.addAttribute(pressureCharacteristic);
   blePeripheral.addAttribute(pressureDescriptor);
-  
+
   blePeripheral.begin();
 }
 
@@ -56,31 +61,54 @@ void loop()
 {
   // Tell the bluetooth radio to do whatever it should be working on
   blePeripheral.poll();
-  
+
   // limit how often we read the sensor
-  if(millis() - previousMillis > interval) {
-    pollSensor();
+  if (millis() - previousMillis > interval) {
+    pollSensors();
     previousMillis = millis();
   }
 }
 
-void pollSensor()
+void pollSensors()
 {
-  
-  float temperature = dht.readTemperature(true);
+
+  Serial.println(F("Polling"));
+  float temperature = dht.readTemperature(true); // fahrenheight
   float humidity = dht.readHumidity();
 
-  // only set the characteristic value if the temperature has changed
-  if (temperatureCharacteristic.value() != temperature) {
-    temperatureCharacteristic.setValue(temperature);
-    Serial.print("Temperature ");
-    Serial.println(temperature);
+  // http://www.srh.noaa.gov/images/epz/wxcalc/pressureConversion.pdf
+  // To convert between inches of mercury (inHg) and millibars (mb) or hectopascals (hPa)
+  // P inHg = 0.0295300 x P mb
+  // Dividing by 100 to convert pascals to hectopascals
+  //float pressure = bmp.readPressure() * 0.0295300 / 100.0;
+  int32_t pressure = bmp.readPressure();
+
+  if (isnan(temperature)) {
+    Serial.println(F("Temp NaN"));
+  }
+  if (isnan(humidity)) {
+    Serial.println(F("Humidity NaN"));
   }
 
-  if (humidityCharacteristic.value() != humidity) {
+  // only set the characteristic value if the temperature has changed
+  if (!isnan(temperature) && temperatureCharacteristic.value() != temperature) {
+    temperatureCharacteristic.setValue(temperature);
+    Serial.print(F("Temperature "));
+    Serial.println(bmp.readTemperature());
+  }
+
+  // only set the characteristic value if the humidity has changed
+  if (!isnan(humidity) && humidityCharacteristic.value() != humidity) {
     humidityCharacteristic.setValue(humidity);
-    Serial.print("Humidity ");
+    Serial.print(F("Humidity "));
     Serial.println(humidity);
+  }
+
+  // only set the characteristic value if the pressure has changed
+  if (!isnan(pressure) && pressureCharacteristic.value() != pressure) {
+    pressureCharacteristic.setValue(pressure);
+    Serial.print(F("Pressure "));
+    Serial.println(pressure);
   }
 
 }
