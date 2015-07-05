@@ -9,8 +9,6 @@
 
 BLEPeripheral blePeripheral = BLEPeripheral(BLE_REQ, BLE_RDY, BLE_RST);
 BLEService weatherService = BLEService("BBB0");
-// TODO normalize descriptor text Temperature, Humidity, Pressure
-// TODO are there standard Bluetooth descriptors for units?
 BLEFloatCharacteristic temperatureCharacteristic = BLEFloatCharacteristic("BBB1", BLERead | BLENotify);
 BLEDescriptor temperatureDescriptor = BLEDescriptor("2901", "Temperature (deg F)");
 BLEFloatCharacteristic humidityCharacteristic = BLEFloatCharacteristic("BBB2", BLERead | BLENotify);
