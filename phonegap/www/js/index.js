@@ -104,10 +104,13 @@ var app = {
         var message = "Humidity is " + humidity.toFixed(1) + "%";
         humidityDiv.innerHTML = message;
     },
-    onPressure: function(buffer) {
-        var data = new Float32Array(buffer);
+    onPressureChange: function(buffer) {
+        var data = new Int32Array(buffer);
         var pressure = data[0];
-        var message = "Pressure is " + pressure.toFixed(1) + " in";
+        // http://www.srh.noaa.gov/images/epz/wxcalc/pressureConversion.pdf
+        var pressureInHg = pressure * 0.0295300 / 100;
+        var message = "Pressure is " + pressure + " pascal<br/>" +
+          "Pressure is " + pressureInHg.toFixed(2) + " inHg";
         pressureDiv.innerHTML = message;
     },
     disconnect: function(e) {
