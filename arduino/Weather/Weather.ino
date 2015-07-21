@@ -10,11 +10,11 @@
 BLEPeripheral blePeripheral = BLEPeripheral(BLE_REQ, BLE_RDY, BLE_RST);
 BLEService weatherService = BLEService("BBB0");
 BLEFloatCharacteristic temperatureCharacteristic = BLEFloatCharacteristic("BBB1", BLERead | BLENotify);
-BLEDescriptor temperatureDescriptor = BLEDescriptor("2901", "Temperature (deg F)");
+BLEDescriptor temperatureDescriptor = BLEDescriptor("2901", "Temp");
 BLEFloatCharacteristic humidityCharacteristic = BLEFloatCharacteristic("BBB2", BLERead | BLENotify);
-BLEDescriptor humidityDescriptor = BLEDescriptor("2901", "Humidity (%)");
+BLEDescriptor humidityDescriptor = BLEDescriptor("2901", "Humidity");
 BLEUnsignedLongCharacteristic pressureCharacteristic = BLEUnsignedLongCharacteristic("BBB3", BLERead | BLENotify);
-BLEDescriptor pressureDescriptor = BLEDescriptor("2901", "Pressure (pascal)");
+BLEDescriptor pressureDescriptor = BLEDescriptor("2901", "Pressure");
 
 #include "DHT.h"
 #define DHTPIN 7        // what pin we're connected to
