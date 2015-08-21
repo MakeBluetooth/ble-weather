@@ -96,43 +96,47 @@ var app = {
         var data = new Float32Array(buffer);
         var temperature = data[0];
         var temperatureF = temperature * 1.8 + 32;
-        var message = "Temperature is " + temperature.toFixed(1) + "&deg;C<br/>" +
-          "Temperature is " + temperatureF.toFixed(1) + "&deg;F<br/>";
+        var message = temperature.toFixed(1) + "&deg;C<br/>" +
+          temperatureF.toFixed(1) + "&deg;F<br/>";
         temperatureDiv.innerHTML = message;
     },
     onHumidityChange: function(buffer) {
         var data = new Float32Array(buffer);
         var humidity = data[0];
-        var message = "Humidity is " + humidity.toFixed(1) + "%";
+        var message = humidity.toFixed(1) + "%";
         humidityDiv.innerHTML = message;
     },
     onPressureChange: function(buffer) {
         var data = new Float32Array(buffer);
         var pressure = data[0]; // pascals
-        // hectoPascals is a better unit of measure
-        var hPa = pressure / 100.0;
-//        var message = "Pressure is " + pressure.toFixed(1) + " pascal";
-//        pressureDiv.innerHTML = message;
 
-        // http://www.srh.noaa.gov/images/epz/wxcalc/pressureConversion.pdf
-        var pressureInHg = pressure * 0.0295300 / 100;
+        // hectoPascals (or millibar) is a better unit of measure
+        pressure = pressure / 100.0;
 
-        // need to convert station pressure to sea level pressure
+        var message = pressure.toFixed(2) + " hPa<br/>" +
+              app.toInchesOfMercury(pressure) + " inHg<br/>";
+
+        // station pressure is what we measure
+        stationPressureDiv.innerHTML = message;
+
+        // Pressure needs to be convered to sea level pressure to match
+        // the barometric pressure in weather reports.
 
         // Fort Washington, PA - adjust this for your location
         var elevationInMeters = 50.438;
+
         // pressure drops approx 1 millibar for every 8 meters above sea level
         var delta = elevationInMeters / 8.0;
-        var seaLevelPressure = hPa + delta;
+        var seaLevelPressure = pressure + delta;
 
-        var message = "Pressure is " + hPa.toFixed(2) + " hPa<br/>" +
-          "Pressure is " + pressureInHg.toFixed(2) + " inHg<br/>" +
-          "Sea Level pressure is " + seaLevelPressure.toFixed(2) + " hPa<br/>" +
-          "Sea Level pressure is " + (seaLevelPressure * 0.0295300).toFixed(2) + " inHg";
+        message = seaLevelPressure.toFixed(2) + " hPa<br/>" +
+          app.toInchesOfMercury(seaLevelPressure) + " inHg";
 
-        pressureDiv.innerHTML = message;
-
-
+        seaLevelPressureDiv.innerHTML = message;
+    },
+    toInchesOfMercury: function(hPa) {
+      // http://www.srh.noaa.gov/images/epz/wxcalc/pressureConversion.pdf
+      return (hPa * 0.0295300).toFixed(2);
     },
     disconnect: function(e) {
         if (app.peripheral && app.peripheral.id) {
