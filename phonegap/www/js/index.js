@@ -95,7 +95,9 @@ var app = {
     onTemperatureChange: function(buffer) {
         var data = new Float32Array(buffer);
         var temperature = data[0];
-        var message = "Temperature is " + temperature.toFixed(1) + "&deg;F";
+        var temperatureF = temperature * 1.8 + 32;
+        var message = "Temperature is " + temperature.toFixed(1) + "&deg;C<br/>" +
+          "Temperature is " + temperatureF.toFixed(1) + "&deg;F<br/>";
         temperatureDiv.innerHTML = message;
     },
     onHumidityChange: function(buffer) {
@@ -105,13 +107,32 @@ var app = {
         humidityDiv.innerHTML = message;
     },
     onPressureChange: function(buffer) {
-        var data = new Int32Array(buffer);
-        var pressure = data[0];
+        var data = new Float32Array(buffer);
+        var pressure = data[0]; // pascals
+        // hectoPascals is a better unit of measure
+        var hPa = pressure / 100.0;
+//        var message = "Pressure is " + pressure.toFixed(1) + " pascal";
+//        pressureDiv.innerHTML = message;
+
         // http://www.srh.noaa.gov/images/epz/wxcalc/pressureConversion.pdf
         var pressureInHg = pressure * 0.0295300 / 100;
-        var message = "Pressure is " + pressure + " pascal<br/>" +
-          "Pressure is " + pressureInHg.toFixed(2) + " inHg";
+
+        // need to convert station pressure to sea level pressure
+
+        // Fort Washington, PA - adjust this for your location
+        var elevationInMeters = 50.438;
+        // pressure drops approx 1 millibar for every 8 meters above sea level
+        var delta = elevationInMeters / 8.0;
+        var seaLevelPressure = hPa + delta;
+
+        var message = "Pressure is " + hPa.toFixed(2) + " hPa<br/>" +
+          "Pressure is " + pressureInHg.toFixed(2) + " inHg<br/>" +
+          "Sea Level pressure is " + seaLevelPressure.toFixed(2) + " hPa<br/>" +
+          "Sea Level pressure is " + (seaLevelPressure * 0.0295300).toFixed(2) + " inHg";
+
         pressureDiv.innerHTML = message;
+
+
     },
     disconnect: function(e) {
         if (app.peripheral && app.peripheral.id) {
