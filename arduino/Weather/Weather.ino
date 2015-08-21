@@ -61,7 +61,6 @@ void loop()
 
   // limit how often we read the sensor
   if (millis() - previousMillis > interval) {
-    Serial.print("*");
     pollSensors();
     previousMillis = millis();
   }
