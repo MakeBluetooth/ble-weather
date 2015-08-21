@@ -1,4 +1,7 @@
+//#include <Wire.h>
 #include <SPI.h>
+//#include <Adafruit_Sensor.h>
+//#include <Adafruit_BME280.h>
 #include <BLEPeripheral.h>
 
 // define pins for Adafruit Bluefruit LE
@@ -13,17 +16,13 @@ BLEFloatCharacteristic temperatureCharacteristic = BLEFloatCharacteristic("BBB1"
 BLEDescriptor temperatureDescriptor = BLEDescriptor("2901", "Temp");
 BLEFloatCharacteristic humidityCharacteristic = BLEFloatCharacteristic("BBB2", BLERead | BLENotify);
 BLEDescriptor humidityDescriptor = BLEDescriptor("2901", "Humidity");
-BLEUnsignedLongCharacteristic pressureCharacteristic = BLEUnsignedLongCharacteristic("BBB3", BLERead | BLENotify);
+BLEFloatCharacteristic pressureCharacteristic = BLEFloatCharacteristic("BBB3", BLERead | BLENotify);
 BLEDescriptor pressureDescriptor = BLEDescriptor("2901", "Pressure");
 
-#include "DHT.h"
-#define DHTPIN 7        // what pin we're connected to
-#define DHTTYPE DHT22   // DHT 22  (AM2302)
-DHT dht(DHTPIN, DHTTYPE);
-
 #include <Wire.h>
-#include <Adafruit_BMP085.h>
-Adafruit_BMP085 bmp;
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+Adafruit_BME280 bme;
 
 long previousMillis = 0;  // stores the last time sensor was read
 long interval = 2000;     // interval at which to read sensor (milliseconds)
@@ -32,11 +31,6 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println(F("Bluetooth Low Energy Weather Station"));
-
-  if (!bmp.begin()) {
-    Serial.println(F("Could not find a valid BPM180 sensor, check wiring!"));
-    while (1) {}
-  }
 
   // set advertised name and service
   blePeripheral.setLocalName("Weather");
@@ -53,6 +47,11 @@ void setup()
   blePeripheral.addAttribute(pressureDescriptor);
 
   blePeripheral.begin();
+  //bme.begin();
+  if (!bme.begin()) {  
+    Serial.println(F("Could not find a valid BME280 sensor, check wiring!"));
+    while (1);
+  }
 }
 
 void loop()
@@ -62,6 +61,7 @@ void loop()
 
   // limit how often we read the sensor
   if (millis() - previousMillis > interval) {
+    Serial.print("*");
     pollSensors();
     previousMillis = millis();
   }
@@ -70,15 +70,15 @@ void loop()
 void pollSensors()
 {
 
-  float temperature = dht.readTemperature(true); // fahrenheight
-  float humidity = dht.readHumidity();
-  int32_t pressure = bmp.readPressure();
+  float temperature = bme.readTemperature();
+  float humidity = bme.readHumidity();
+  float pressure = bme.readPressure();
 
   // only set the characteristic value if the temperature has changed
   if (!isnan(temperature) && temperatureCharacteristic.value() != temperature) {
     temperatureCharacteristic.setValue(temperature);
     Serial.print(F("Temperature "));
-    Serial.println(bmp.readTemperature());
+    Serial.println(temperature);
   }
 
   // only set the characteristic value if the humidity has changed
