@@ -7,42 +7,32 @@
         <title>BLE Weather</title>
     </head>
     <body>
-        <div>
-            <h2>BLE Weather</h2>
-            <div id="mainPage">
-                <ul id="deviceList">
-                </ul>
-                <button id="refreshButton">Refresh</button>
+        <h2>BLE Weather</h2>
+        <div id="mainPage">
+            <ul id="deviceList">
+            </ul>
+            <button id="refreshButton">Refresh</button>
+        </div>
+        <div id="detailPage">
+            <p>Temperature</p>
+            <div id="temperatureDiv">
+                Unknown
             </div>
-            <div id="detailPage">
-                <p>Temperature</p>
-                <div id="temperatureDiv">
-                    Unknown
-                </div>
-                <p>Humidity</p>
-                <div id="humidityDiv">
-                    Unknown
-                </div>
-                <p>Station Pressure</p>
-                <div id="stationPressureDiv">
-                    Unknown
-                </div>
-                <p>Sea Level Pressure</p>
-                <div id="seaLevelPressureDiv">
-                    Unknown
-                </div>
-                <button id="disconnectButton">Disconnect</button>
+            <p>Humidity</p>
+            <div id="humidityDiv">
+                Unknown
             </div>
+            <p>Station Pressure</p>
+            <div id="stationPressureDiv">
+                Unknown
+            </div>
+            <p>Sea Level Pressure</p>
+            <div id="seaLevelPressureDiv">
+                Unknown
+            </div>
+            <button id="disconnectButton">Disconnect</button>
         </div>
         <script type="text/javascript" src="cordova.js"></script>
-        <script type="text/javascript" src="js/fastclick.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
-        <script type="text/javascript">
-            window.addEventListener('load', function() {
-                new FastClick(document.body);
-            }, false);
-
-            app.initialize();
-        </script>
     </body>
 </html>

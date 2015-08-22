@@ -1,4 +1,4 @@
-var THERMOMETER_SERVICE = 'BBB0';
+var WEATHER_SERVICE = 'BBB0';
 var TEMPERATURE_CHARACTERISTIC = 'BBB1';
 var HUMIDITY_CHARACTERISTIC = 'BBB2';
 var PRESSURE_CHARACTERISTIC = 'BBB3';
@@ -19,7 +19,7 @@ var app = {
     },
     refreshDeviceList: function() {
         deviceList.innerHTML = ''; // empty the list
-        ble.scan([THERMOMETER_SERVICE], 5, app.onDiscoverDevice, app.onError);
+        ble.scan([WEATHER_SERVICE], 5, app.onDiscoverDevice, app.onError);
     },
     onDiscoverDevice: function(device) {
        var listItem = document.createElement('li');
@@ -39,37 +39,37 @@ var app = {
            navigator.notification.alert(reason, null, "Temperature Error");
         };
 
-        // subscribe to be notified when the button state changes
+        // subscribe to be notified when the temperature changes
         ble.startNotification(
             peripheral.id,
-            THERMOMETER_SERVICE,
+            WEATHER_SERVICE,
             TEMPERATURE_CHARACTERISTIC,
             app.onTemperatureChange,
             failure
         );
 
-        // subscribe to be notified when the button state changes
+        // subscribe to be notified when the humidity changes
         ble.startNotification(
             peripheral.id,
-            THERMOMETER_SERVICE,
+            WEATHER_SERVICE,
             HUMIDITY_CHARACTERISTIC,
             app.onHumidityChange,
             failure
         );
 
-        // subscribe to be notified when the button state changes
+        // subscribe to be notified when pressure changes
         ble.startNotification(
             peripheral.id,
-            THERMOMETER_SERVICE,
+            WEATHER_SERVICE,
             PRESSURE_CHARACTERISTIC,
             app.onPressureChange,
             failure
         );
 
-        // read the initial value
+        // read the initial values
         ble.read(
             peripheral.id,
-            THERMOMETER_SERVICE,
+            WEATHER_SERVICE,
             TEMPERATURE_CHARACTERISTIC,
             app.onTemperatureChange,
             failure
@@ -77,7 +77,7 @@ var app = {
 
         ble.read(
             peripheral.id,
-            THERMOMETER_SERVICE,
+            WEATHER_SERVICE,
             HUMIDITY_CHARACTERISTIC,
             app.onHumidityChange,
             failure
@@ -85,7 +85,7 @@ var app = {
 
         ble.read(
             peripheral.id,
-            THERMOMETER_SERVICE,
+            WEATHER_SERVICE,
             PRESSURE_CHARACTERISTIC,
             app.onPressureChange,
             failure
@@ -113,13 +113,13 @@ var app = {
         // hectoPascals (or millibar) is a better unit of measure
         pressure = pressure / 100.0;
 
+        // station pressure is what we measure
         var message = pressure.toFixed(2) + " hPa<br/>" +
               app.toInchesOfMercury(pressure) + " inHg<br/>";
 
-        // station pressure is what we measure
         stationPressureDiv.innerHTML = message;
 
-        // Pressure needs to be convered to sea level pressure to match
+        // Pressure needs to be converted to sea-level pressure to match
         // the barometric pressure in weather reports.
 
         // Fort Washington, PA - adjust this for your location
@@ -155,3 +155,5 @@ var app = {
        navigator.notification.alert(reason, app.showMainPage, "Error");
     }
 };
+
+app.initialize();
